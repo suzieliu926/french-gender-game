@@ -2,46 +2,63 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>法语性别快闪终极版</title>
+<title>法语性别 & 冠词训练 - 无规则提示版</title>
 <style>
-  body { font-family: sans-serif; text-align: center; margin-top: 50px; background: #f2f6fa; }
-  h1 { color: #333; }
-  .word { font-size: 2em; margin: 20px; opacity: 1; transition: opacity 0.5s ease; }
-  button { font-size: 1.5em; margin: 10px; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+  body { font-family: 'Segoe UI', sans-serif; margin-top: 20px;
+    background: linear-gradient(to bottom, #0055A4, #FFFFFF, #EF4135);
+    color: #333; text-align: center; }
+  h1 { color: #222; padding: 10px; background: rgba(255,255,255,0.8);
+    border-radius: 8px; font-size: 1.8em; display:inline-block }
+  .word { font-size: 2.5em; margin: 20px; opacity: 1; transition: opacity 0.5s ease;
+    font-weight: bold; }
+  button { font-size: 1.2em; margin: 5px; padding: 10px 20px; border: none;
+    border-radius: 30px; cursor: pointer; transition: transform 0.2s, background-color 0.3s; }
+  button:hover { transform: scale(1.05); }
   .btnM { background-color: #4da3ff; color: white; }
   .btnF { background-color: #ff4d94; color: white; }
+  .btnArt { background-color: #888; color: white; }
   .btnStart { background-color: #4CAF50; color: white; }
-  #feedback { font-size: 1.2em; margin-top: 15px; }
-  #timerBar { width: 80%; height: 10px; background: #ddd; margin: 15px auto; border-radius: 5px; overflow: hidden; }
-  #timerFill { height: 10px; background: #4CAF50; width: 0%; }
-  .correct { color: green; animation: flashGreen 0.5s ease-in-out; }
-  .wrong { color: red; animation: flashRed 0.5s ease-in-out; }
-  @keyframes flashGreen { 0%{color:green;}50%{color:lime;}100%{color:green;} }
-  @keyframes flashRed { 0%{color:red;}50%{color:orange;}100%{color:red;} }
-  #summary { margin-top: 30px; font-size: 1.1em; }
+  #timerBar { width: 80%; height: 12px; background: rgba(0,0,0,0.2); margin: 10px auto;
+    border-radius: 6px; overflow: hidden; }
+  #timerFill { height: 12px; background: linear-gradient(to right, #4CAF50, #8BC34A);
+    width: 100%; transition: width 0.1s; }
+  #timeLeft { font-size: 1.2em; margin-top: 5px; font-weight: bold; }
+  .correct { color: green; font-weight: bold; }
+  .wrong { color: red; font-weight: bold; }
+  #feedback { font-size: 1.2em; margin-top: 15px; min-height: 50px; }
+  #summary { margin-top: 30px; font-size: 1.1em; background: rgba(255,255,255,0.8);
+    padding: 10px; border-radius: 8px;}
+  #continueBtn { background-color: #FFA500; color: white; display:none; }
 </style>
 </head>
 <body>
 
-<h1>法语性别快闪 🎯</h1>
+<h1>法语性别 ➡ 冠词训练 🎯</h1>
 <div id="score">得分: 0</div>
 <div class="word" id="word">点击开始</div>
-<button class="btnM" onclick="choose('M')">阳性 (M)</button>
-<button class="btnF" onclick="choose('F')">阴性 (F)</button>
+
+<div id="genderBtns">
+  <button class="btnM" onclick="chooseGender('M')">阳性 (M)</button>
+  <button class="btnF" onclick="chooseGender('F')">阴性 (F)</button>
+</div>
+
+<div id="articleBtns" style="display:none;">
+  <button class="btnArt" onclick="chooseArticle('le')">le</button>
+  <button class="btnArt" onclick="chooseArticle('la')">la</button>
+  <button class="btnArt" onclick="chooseArticle('l’')">l’</button>
+</div>
+
 <br><br>
-<button class="btnStart" onclick="startGame('basic')">开始初级关</button>
-<button class="btnStart" onclick="startGame('advanced')">挑战高级关</button>
+<button id="startBtn" class="btnStart" onclick="startGame()">开始游戏</button>
+<button id="continueBtn" onclick="continueGame()">继续</button>
+
 <div id="feedback"></div>
 <div id="timerBar"><div id="timerFill"></div></div>
+<div id="timeLeft">5 秒</div>
 <div id="summary"></div>
 
-<!-- 音效 -->
-<audio id="soundCorrect" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="soundWrong" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
-<audio id="soundWarning" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
 <script>
-const basicWords = [
+const words = [
   {text: "madame", gender: "F"},
   {text: "monsieur", gender: "M"},
   {text: "soeur", gender: "F"},
@@ -50,106 +67,120 @@ const basicWords = [
   {text: "école", gender: "F"},
   {text: "an", gender: "M"},
   {text: "rue", gender: "F"},
-  {text: "fête", gender: "F"}
-];
-
-const advancedWords = basicWords.concat([
+  {text: "fête", gender: "F"},
   {text: "courage", gender: "M"},
   {text: "plage", gender: "F"},
   {text: "problème", gender: "M"},
   {text: "eau", gender: "F"},
   {text: "arbre", gender: "M"}
-]);
+];
 
-let wordList = [];
-let score = 0;
-let round = 0;
-let totalRounds = 10;
-let currentWord = null;
-let wrongList = [];
-let timer;
-let timeLimit = 5000; // 每题5秒
-let startTime;
+let score = 0, round = 0, totalRounds = 10;
+let currentWord = null, wrongList = [], timer;
+let timeLimit = 5000, phase = 1, chosenGender = null, startTime;
 
-function startGame(mode) {
-  wordList = (mode === 'advanced') ? advancedWords : basicWords;
-  score = 0;
-  round = 0;
-  wrongList = [];
+function startGame(){
+  score = 0; round = 0; wrongList = [];
   document.getElementById('score').innerText = "得分: " + score;
   document.getElementById('summary').innerHTML = "";
+  document.getElementById('startBtn').style.display = 'none';
   nextWord();
   startTime = Date.now();
 }
 
-function nextWord() {
+function nextWord(){
   clearInterval(timer);
-  if (round >= totalRounds) {
-    endGame();
-    return;
-  }
+  if (round >= totalRounds) { endGame(); return; }
   round++;
-  let wElem = document.getElementById('word');
-  wElem.style.opacity = 0;
-  setTimeout(() => {
-    currentWord = wordList[Math.floor(Math.random()*wordList.length)];
-    wElem.style.opacity = 1;
-    wElem.innerText = currentWord.text;
-  }, 300);
+  currentWord = words[Math.floor(Math.random() * words.length)];
+  document.getElementById('word').innerText = currentWord.text;
   document.getElementById('feedback').innerText = "";
+  phase = 1; chosenGender = null;
+  document.getElementById('genderBtns').style.display = 'block';
+  document.getElementById('articleBtns').style.display = 'none';
+  document.getElementById('continueBtn').style.display = 'none';
   startTimer();
 }
 
-function startTimer() {
+function startTimer(){
+  clearInterval(timer);
   let elapsed = 0;
+  let timeLeftElem = document.getElementById('timeLeft');
+  timeLeftElem.style.color = "#333";
   document.getElementById('timerFill').style.width = "100%";
-  timer = setInterval(() => {
+  timer = setInterval(()=>{
     elapsed += 100;
     let remaining = timeLimit - elapsed;
+    let secondsLeft = Math.ceil(remaining / 1000);
+    timeLeftElem.textContent = secondsLeft + " 秒";
     let percentage = (remaining / timeLimit) * 100;
     document.getElementById('timerFill').style.width = percentage + "%";
-    if (remaining <= 1500 && remaining > 1400) {
-      document.getElementById('soundWarning').play();
-    }
-    if (remaining <= 0) {
+    if (secondsLeft <= 2 && secondsLeft > 0) timeLeftElem.style.color = "orange";
+    if (secondsLeft <= 1) timeLeftElem.style.color = "red";
+    if (remaining <= 0){
       clearInterval(timer);
-      document.getElementById('feedback').innerHTML = `<span class="wrong">⏰ 时间到！正确是 ${currentWord.gender}</span>`;
-      document.getElementById('soundWrong').play();
-      wrongList.push(currentWord);
-      setTimeout(nextWord, 1000);
+      handleWrong(`⏰ 时间到！正确是 ${phase===1?currentWord.gender:expectedArticle(currentWord)}`);
     }
   }, 100);
 }
 
-function choose(choice) {
+function chooseGender(choice){
   clearInterval(timer);
-  if (!currentWord) return;
-  if (choice === currentWord.gender) {
-    score++;
-    document.getElementById('feedback').innerHTML = `<span class="correct">✔ 正确！</span>`;
-    document.getElementById('soundCorrect').play();
+  chosenGender = choice;
+  if (choice === currentWord.gender){
+    document.getElementById('feedback').innerHTML = "<span class='correct'>✔ 性别正确！</span>";
+    phase = 2;
+    document.getElementById('genderBtns').style.display = 'none';
+    document.getElementById('articleBtns').style.display = 'block';
+    startTimer();
   } else {
-    document.getElementById('feedback').innerHTML = `<span class="wrong">❌ 错误！正确是 ${currentWord.gender}</span>`;
-    document.getElementById('soundWrong').play();
-    wrongList.push(currentWord);
+    handleWrong(`❌ 性别错误！正确是 ${currentWord.gender}`);
   }
-  document.getElementById('score').innerText = "得分: " + score;
-  setTimeout(nextWord, 1000);
 }
 
-function endGame() {
+function expectedArticle(wordObj){
+  const first = wordObj.text[0].toLowerCase();
+  const vowels = ['a','e','i','o','u','h','â','ê','î','ô','û','é','è','ë','ï','ü'];
+  if (vowels.includes(first)) return "l’";
+  return wordObj.gender === "M" ? "le" : "la";
+}
+
+function chooseArticle(choice){
+  clearInterval(timer);
+  const correctArt = expectedArticle(currentWord);
+  if (choice === correctArt){
+    document.getElementById('feedback').innerHTML = "<span class='correct'>✔ 冠词正确！</span>";
+    score++;
+    setTimeout(nextWord, 1000);
+  } else {
+    handleWrong(`❌ 冠词错误！正确是 ${correctArt}`);
+  }
+  document.getElementById('score').innerText = "得分: " + score;
+}
+
+function handleWrong(msg){
+  document.getElementById('feedback').innerHTML = `<span class='wrong'>${msg}</span>`;
+  wrongList.push(currentWord);
+  document.getElementById('continueBtn').style.display = 'inline-block';
+}
+
+function continueGame(){
+  nextWord();
+}
+
+function endGame(){
   let timeUsed = ((Date.now() - startTime) / 1000).toFixed(1);
   document.getElementById('word').innerText = "游戏结束!";
   document.getElementById('feedback').innerText = "";
-  let wrongText = wrongList.length > 0 
-    ? "<b>需要复习：</b><br>" + wrongList.map(w => `${w.text} (${w.gender})`).join(", ") 
+  let wrongText = wrongList.length>0
+    ? "<b>需要复习：</b><br>" + wrongList.map(w =>
+        `${w.text} (${w.gender}, ${expectedArticle(w)})`).join("<br>")
     : "🎉 全部答对！";
   document.getElementById('summary').innerHTML = `
     <p>总分: ${score} / ${totalRounds}</p>
     <p>总用时: ${timeUsed} 秒</p>
     <p>${wrongText}</p>
-    <button class="btnStart" onclick="startGame('basic')">再玩初级关</button>
-    <button class="btnStart" onclick="startGame('advanced')">挑战高级关</button>
+    <button class='btnStart' onclick="startGame()">再玩一次</button>
   `;
 }
 </script>
