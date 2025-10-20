@@ -2,33 +2,90 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>法语性别 & 冠词训练 - 无规则提示版</title>
+<title>法语性别 & 冠词训练 - 简约版</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body { font-family: 'Segoe UI', sans-serif; margin-top: 20px;
-    background: linear-gradient(to bottom, #0055A4, #FFFFFF, #EF4135);
-    color: #333; text-align: center; }
-  h1 { color: #222; padding: 10px; background: rgba(255,255,255,0.8);
-    border-radius: 8px; font-size: 1.8em; display:inline-block }
-  .word { font-size: 2.5em; margin: 20px; opacity: 1; transition: opacity 0.5s ease;
-    font-weight: bold; }
-  button { font-size: 1.2em; margin: 5px; padding: 10px 20px; border: none;
-    border-radius: 30px; cursor: pointer; transition: transform 0.2s, background-color 0.3s; }
-  button:hover { transform: scale(1.05); }
-  .btnM { background-color: #4da3ff; color: white; }
-  .btnF { background-color: #ff4d94; color: white; }
-  .btnArt { background-color: #888; color: white; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f7f7f7; /* 简约浅灰底 */
+    color: #333;
+    text-align: center;
+  }
+  h1 {
+    font-size: 1.5em;
+    padding: 10px;
+    background: white;
+    margin: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  #score {
+    font-size: 1.2em;
+    margin-top: 8px;
+  }
+  .word {
+    font-size: 2em;
+    margin: 20px 0;
+    font-weight: bold;
+  }
+  button {
+    font-size: 1.2em;
+    padding: 12px 20px;
+    margin: 8px 5px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 80%;
+    max-width: 260px;
+  }
+  /* 柔和色调按钮 */
+  .btnM { background-color: #5ba8ff; color: white; }
+  .btnF { background-color: #ff7ca8; color: white; }
+  .btnArt { background-color: #b0b0b0; color: white; }
   .btnStart { background-color: #4CAF50; color: white; }
-  #timerBar { width: 80%; height: 12px; background: rgba(0,0,0,0.2); margin: 10px auto;
-    border-radius: 6px; overflow: hidden; }
-  #timerFill { height: 12px; background: linear-gradient(to right, #4CAF50, #8BC34A);
-    width: 100%; transition: width 0.1s; }
-  #timeLeft { font-size: 1.2em; margin-top: 5px; font-weight: bold; }
-  .correct { color: green; font-weight: bold; }
-  .wrong { color: red; font-weight: bold; }
-  #feedback { font-size: 1.2em; margin-top: 15px; min-height: 50px; }
-  #summary { margin-top: 30px; font-size: 1.1em; background: rgba(255,255,255,0.8);
-    padding: 10px; border-radius: 8px;}
-  #continueBtn { background-color: #FFA500; color: white; display:none; }
+  #continueBtn { background-color: #FFA64D; color: white; display:none; }
+
+  /* 倒计时条柔和绿色 */
+  #timerBar {
+    width: 90%;
+    height: 14px;
+    background: #ddd;
+    border-radius: 7px;
+    overflow: hidden;
+    margin: 10px auto;
+  }
+  #timerFill {
+    height: 14px;
+    background: linear-gradient(to right, #8BC34A, #C8E6C9);
+    width: 100%;
+  }
+  #timeLeft {
+    font-size: 1.2em;
+    margin-top: 5px;
+    font-weight: bold;
+  }
+  .correct { color: #4CAF50; font-weight: bold; }
+  .wrong { color: #f44336; font-weight: bold; }
+  #feedback {
+    font-size: 1.2em;
+    margin-top: 10px;
+    min-height: 40px;
+    padding: 0 10px;
+  }
+  #summary {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 1em;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  /* 小屏优化 */
+  @media (max-width: 480px) {
+    .word { font-size: 1.8em; }
+    button { font-size: 1.1em; padding: 10px 16px; }
+  }
 </style>
 </head>
 <body>
@@ -48,7 +105,6 @@
   <button class="btnArt" onclick="chooseArticle('l’')">l’</button>
 </div>
 
-<br><br>
 <button id="startBtn" class="btnStart" onclick="startGame()">开始游戏</button>
 <button id="continueBtn" onclick="continueGame()">继续</button>
 
@@ -59,20 +115,13 @@
 
 <script>
 const words = [
-  {text: "madame", gender: "F"},
-  {text: "monsieur", gender: "M"},
-  {text: "soeur", gender: "F"},
-  {text: "ingénieur", gender: "M"},
-  {text: "professeur", gender: "M"},
-  {text: "école", gender: "F"},
-  {text: "an", gender: "M"},
-  {text: "rue", gender: "F"},
-  {text: "fête", gender: "F"},
-  {text: "courage", gender: "M"},
-  {text: "plage", gender: "F"},
-  {text: "problème", gender: "M"},
-  {text: "eau", gender: "F"},
-  {text: "arbre", gender: "M"}
+  {text: "madame", gender: "F"}, {text: "monsieur", gender: "M"},
+  {text: "soeur", gender: "F"}, {text: "ingénieur", gender: "M"},
+  {text: "professeur", gender: "M"}, {text: "école", gender: "F"},
+  {text: "an", gender: "M"}, {text: "rue", gender: "F"},
+  {text: "fête", gender: "F"}, {text: "courage", gender: "M"},
+  {text: "plage", gender: "F"}, {text: "problème", gender: "M"},
+  {text: "eau", gender: "F"}, {text: "arbre", gender: "M"}
 ];
 
 let score = 0, round = 0, totalRounds = 10;
@@ -151,7 +200,7 @@ function chooseArticle(choice){
   if (choice === correctArt){
     document.getElementById('feedback').innerHTML = "<span class='correct'>✔ 冠词正确！</span>";
     score++;
-    setTimeout(nextWord, 1000);
+    setTimeout(nextWord, 800);
   } else {
     handleWrong(`❌ 冠词错误！正确是 ${correctArt}`);
   }
