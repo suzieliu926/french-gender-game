@@ -2,14 +2,14 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>法语性别 & 冠词训练 - 简约版</title>
+<title>法语性别 & 冠词训练 - 简约手机版无重复题</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
     font-family: 'Segoe UI', sans-serif;
     margin: 0;
     padding: 0;
-    background: #f7f7f7; /* 简约浅灰底 */
+    background: #f7f7f7;
     color: #333;
     text-align: center;
   }
@@ -20,15 +20,8 @@
     margin: 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
-  #score {
-    font-size: 1.2em;
-    margin-top: 8px;
-  }
-  .word {
-    font-size: 2em;
-    margin: 20px 0;
-    font-weight: bold;
-  }
+  #score { font-size: 1.2em; margin-top: 8px; }
+  .word { font-size: 2em; margin: 20px 0; font-weight: bold; }
   button {
     font-size: 1.2em;
     padding: 12px 20px;
@@ -39,52 +32,27 @@
     width: 80%;
     max-width: 260px;
   }
-  /* 柔和色调按钮 */
   .btnM { background-color: #5ba8ff; color: white; }
   .btnF { background-color: #ff7ca8; color: white; }
   .btnArt { background-color: #b0b0b0; color: white; }
   .btnStart { background-color: #4CAF50; color: white; }
   #continueBtn { background-color: #FFA64D; color: white; display:none; }
-
-  /* 倒计时条柔和绿色 */
   #timerBar {
-    width: 90%;
-    height: 14px;
-    background: #ddd;
-    border-radius: 7px;
-    overflow: hidden;
-    margin: 10px auto;
+    width: 90%; height: 14px; background: #ddd; border-radius: 7px;
+    overflow: hidden; margin: 10px auto;
   }
   #timerFill {
     height: 14px;
     background: linear-gradient(to right, #8BC34A, #C8E6C9);
     width: 100%;
   }
-  #timeLeft {
-    font-size: 1.2em;
-    margin-top: 5px;
-    font-weight: bold;
-  }
+  #timeLeft { font-size: 1.2em; margin-top: 5px; font-weight: bold; }
   .correct { color: #4CAF50; font-weight: bold; }
   .wrong { color: #f44336; font-weight: bold; }
-  #feedback {
-    font-size: 1.2em;
-    margin-top: 10px;
-    min-height: 40px;
-    padding: 0 10px;
-  }
+  #feedback { font-size: 1.2em; margin-top: 10px; min-height: 40px; padding: 0 10px; }
   #summary {
-    margin-top: 20px;
-    padding: 10px;
-    font-size: 1em;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  /* 小屏优化 */
-  @media (max-width: 480px) {
-    .word { font-size: 1.8em; }
-    button { font-size: 1.1em; padding: 10px 16px; }
+    margin-top: 20px; padding: 10px; font-size: 1em; background: white;
+    border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 </style>
 </head>
@@ -124,12 +92,14 @@ const words = [
   {text: "eau", gender: "F"}, {text: "arbre", gender: "M"}
 ];
 
-let score = 0, round = 0, totalRounds = 10;
+let score = 0, round = 0, totalRounds = words.length; // 用全部词数为总回合
+let availableWords = [];
 let currentWord = null, wrongList = [], timer;
 let timeLimit = 5000, phase = 1, chosenGender = null, startTime;
 
 function startGame(){
   score = 0; round = 0; wrongList = [];
+  availableWords = [...words]; // 新建可用词列表
   document.getElementById('score').innerText = "得分: " + score;
   document.getElementById('summary').innerHTML = "";
   document.getElementById('startBtn').style.display = 'none';
@@ -139,9 +109,12 @@ function startGame(){
 
 function nextWord(){
   clearInterval(timer);
-  if (round >= totalRounds) { endGame(); return; }
+  if (availableWords.length === 0) { endGame(); return; }
   round++;
-  currentWord = words[Math.floor(Math.random() * words.length)];
+  // 随机取一个并删除，确保不重复
+  let index = Math.floor(Math.random() * availableWords.length);
+  currentWord = availableWords.splice(index, 1)[0];
+
   document.getElementById('word').innerText = currentWord.text;
   document.getElementById('feedback').innerText = "";
   phase = 1; chosenGender = null;
