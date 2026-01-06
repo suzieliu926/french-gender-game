@@ -2,210 +2,153 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>法语性别 & 冠词训练 - 简约手机版无重复题</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>法语单词阴阳性小游戏</title>
 <style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    padding: 0;
-    background: #f7f7f7;
-    color: #333;
-    text-align: center;
-  }
-  h1 {
-    font-size: 1.5em;
-    padding: 10px;
-    background: white;
-    margin: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
-  #score { font-size: 1.2em; margin-top: 8px; }
-  .word { font-size: 2em; margin: 20px 0; font-weight: bold; }
-  button {
-    font-size: 1.2em;
-    padding: 12px 20px;
-    margin: 8px 5px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    width: 80%;
-    max-width: 260px;
-  }
-  .btnM { background-color: #5ba8ff; color: white; }
-  .btnF { background-color: #ff7ca8; color: white; }
-  .btnArt { background-color: #b0b0b0; color: white; }
-  .btnStart { background-color: #4CAF50; color: white; }
-  #continueBtn { background-color: #FFA64D; color: white; display:none; }
-  #timerBar {
-    width: 90%; height: 14px; background: #ddd; border-radius: 7px;
-    overflow: hidden; margin: 10px auto;
-  }
-  #timerFill {
-    height: 14px;
-    background: linear-gradient(to right, #8BC34A, #C8E6C9);
-    width: 100%;
-  }
-  #timeLeft { font-size: 1.2em; margin-top: 5px; font-weight: bold; }
-  .correct { color: #4CAF50; font-weight: bold; }
-  .wrong { color: #f44336; font-weight: bold; }
-  #feedback { font-size: 1.2em; margin-top: 10px; min-height: 40px; padding: 0 10px; }
-  #summary {
-    margin-top: 20px; padding: 10px; font-size: 1em; background: white;
-    border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f0f4f8; }
+    #game { max-width: 600px; margin: auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    button { padding: 10px 20px; margin: 10px; font-size: 18px; cursor: pointer; border-radius:5px; border:none; }
+    .masc { background-color: #4CAF50; color:white; }
+    .fem { background-color: #E91E63; color:white; }
+    button:disabled { background-color: #ccc; color: #666; cursor: not-allowed; }
+    #result { font-size: 20px; margin-top: 15px; }
+    #score { font-size: 18px; margin-bottom: 20px; }
 </style>
 </head>
 <body>
-
-<h1>法语性别 ➡ 冠词训练 🎯</h1>
-<div id="score">得分: 0</div>
-<div class="word" id="word">点击开始</div>
-
-<div id="genderBtns">
-  <button class="btnM" onclick="chooseGender('M')">阳性 (M)</button>
-  <button class="btnF" onclick="chooseGender('F')">阴性 (F)</button>
+<div id="game">
+    <h1>法语名词阴阳性挑战</h1>
+    <div id="score">分数：0/0</div>
+    <div id="word"></div>
+    <div id="ipa"></div>
+    <div id="meaning"></div>
+    <div>
+        <button id="btnMas" class="masc" onclick="checkAnswer('m')">阳性 Masculin</button>
+        <button id="btnFem" class="fem" onclick="checkAnswer('f')">阴性 Féminin</button>
+    </div>
+    <div id="result"></div>
+    <button onclick="nextWord()">下一题</button>
 </div>
-
-<div id="articleBtns" style="display:none;">
-  <button class="btnArt" onclick="chooseArticle('le')">le</button>
-  <button class="btnArt" onclick="chooseArticle('la')">la</button>
-  <button class="btnArt" onclick="chooseArticle('l’')">l’</button>
-</div>
-
-<button id="startBtn" class="btnStart" onclick="startGame()">开始游戏</button>
-<button id="continueBtn" onclick="continueGame()">继续</button>
-
-<div id="feedback"></div>
-<div id="timerBar"><div id="timerFill"></div></div>
-<div id="timeLeft">5 秒</div>
-<div id="summary"></div>
 
 <script>
-const words = [
-  {text: "madame", gender: "F"}, {text: "monsieur", gender: "M"},
-  {text: "soeur", gender: "F"}, {text: "ingénieur", gender: "M"},
-  {text: "professeur", gender: "M"}, {text: "école", gender: "F"},
-  {text: "an", gender: "M"}, {text: "rue", gender: "F"},
-  {text: "fête", gender: "F"}, {text: "courage", gender: "M"},
-  {text: "plage", gender: "F"}, {text: "problème", gender: "M"},
-  {text: "eau", gender: "F"}, {text: "arbre", gender: "M"}
+// 单词数据
+let words = [
+    {word:'madame', ipa:'/ma.dam/', meaning:'女士', gender:'f'},
+    {word:'monsieur', ipa:'/mə.sjø/', meaning:'先生', gender:'m'},
+    {word:'sœur', ipa:'/sœʀ/', meaning:'姐妹', gender:'f'},
+    {word:'ingénieur', ipa:'/ɛ̃.ʒe.njœʀ/', meaning:'工程师', gender:'m'},
+    {word:'professeur', ipa:'/pʁɔ.fɛ.sœʀ/', meaning:'教授/老师', gender:'m'},
+    {word:'école', ipa:'/e.kɔl/', meaning:'学校', gender:'f'},
+    {word:'an', ipa:'/ɑ̃/', meaning:'年', gender:'m'},
+    {word:'rue', ipa:'/ʁy/', meaning:'街道', gender:'f'},
+    {word:'fête', ipa:'/fɛt/', meaning:'节日/派对', gender:'f'},
+    {word:'dimanche', ipa:'/di.mɑ̃ʃ/', meaning:'星期天', gender:'m'},
+    {word:'cinéma', ipa:'/si.ne.ma/', meaning:'电影院', gender:'m'},
+    {word:'heure', ipa:'/œʀ/', meaning:'小时', gender:'f'},
+    {word:'midi', ipa:'/mi.di/', meaning:'中午', gender:'m'},
+    {word:'cours', ipa:'/kuʀ/', meaning:'课程', gender:'m'},
+    {word:'fois', ipa:'/fwa/', meaning:'次数', gender:'f'},
+    {word:'retard', ipa:'/ʁə.taʀ/', meaning:'迟到', gender:'m'},
+    {word:'pardon', ipa:'/paʁ.dɔ̃/', meaning:'对不起', gender:'m'},
+    {word:'attention', ipa:'/a.tɑ̃.sjɔ̃/', meaning:'注意', gender:'f'},
+    {word:'voiture', ipa:'/vwa.tyʀ/', meaning:'汽车', gender:'f'},
+    {word:'avenue', ipa:'/a.və.ny/', meaning:'大街', gender:'f'},
+    {word:'place', ipa:'/plas/', meaning:'广场', gender:'f'},
+    {word:'gauche', ipa:'/ɡoʃ/', meaning:'左边', gender:'f'},
+    {word:'droite', ipa:'/dʁwat/', meaning:'右边', gender:'f'},
+    {word:'bus', ipa:'/bys/', meaning:'公交车', gender:'m'},
+    {word:'pied', ipa:'/pje/', meaning:'脚', gender:'m'},
+    {word:'minute', ipa:'/mi.nyt/', meaning:'分钟', gender:'f'},
+    {word:'demain', ipa:'/də.mɛ̃/', meaning:'明天', gender:'m'},
+    {word:'devoir', ipa:'/də.vwaʀ/', meaning:'作业', gender:'m'},
+    {word:'concert', ipa:'/kɔ̃.sɛʀ/', meaning:'音乐会', gender:'m'},
+    {word:'soir', ipa:'/swaʀ/', meaning:'晚上', gender:'m'},
+    {word:'rendez-vous', ipa:'/ʁɑ̃.de.vu/', meaning:'约会', gender:'m'},
+    {word:'après-midi', ipa:'/a.pʁɛ.mi.di/', meaning:'下午', gender:'m'},
+    {word:'aujourd\'hui', ipa:'/o.ʒuʀ.dɥi/', meaning:'今天', gender:'m'},
+    {word:'secrétaire', ipa:'/sə.kʁe.tɛʁ/', meaning:'秘书', gender:'mf'},
+    {word:'étudiant', ipa:'/e.ty.djɑ̃/', meaning:'男学生', gender:'m'},
+    {word:'étudiante', ipa:'/e.ty.djɑ̃t/', meaning:'女学生', gender:'f'},
+    {word:'département', ipa:'/de.paʁ.tə.mɑ̃/', meaning:'系/部门', gender:'m'},
+    {word:'année', ipa:'/a.ne/', meaning:'年', gender:'f'},
+    {word:'stage', ipa:'/staʒ/', meaning:'实习/培训', gender:'m'},
+    {word:'été', ipa:'/ete/', meaning:'夏天', gender:'m'},
+    {word:'fac', ipa:'/fak/', meaning:'大学院系', gender:'f'},
+    {word:'ami', ipa:'/a.mi/', meaning:'男朋友/男友', gender:'m'},
+    {word:'amie', ipa:'/a.mi/', meaning:'女朋友/女友', gender:'f'},
+    {word:'pouvoir', ipa:'/pu.vwaʀ/', meaning:'能力/权力', gender:'m'},
+    {word:'numéro', ipa:'/ny.me.ʁo/', meaning:'号码', gender:'m'},
+    {word:'téléphone', ipa:'/te.le.fɔn/', meaning:'电话', gender:'m'},
+    {word:'portable', ipa:'/pɔʁ.ta.bl/', meaning:'手机', gender:'m'},
+    {word:'matin', ipa:'/ma.tɛ̃/', meaning:'早晨', gender:'m'},
+    {word:'samedi', ipa:'/sa.mə.di/', meaning:'星期六', gender:'m'}
 ];
 
-let score = 0, round = 0, totalRounds = words.length; // 用全部词数为总回合
-let availableWords = [];
-let currentWord = null, wrongList = [], timer;
-let timeLimit = 5000, phase = 1, chosenGender = null, startTime;
+// 打乱顺序
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+shuffle(words);
 
-function startGame(){
-  score = 0; round = 0; wrongList = [];
-  availableWords = [...words]; // 新建可用词列表
-  document.getElementById('score').innerText = "得分: " + score;
-  document.getElementById('summary').innerHTML = "";
-  document.getElementById('startBtn').style.display = 'none';
-  nextWord();
-  startTime = Date.now();
+let score = 0;
+let completed = 0;  // 已完成题数
+let currentIndex = 0;
+
+function showWord(index){
+    document.getElementById('word').innerHTML = `<h2>${words[index].word}</h2>`;
+    document.getElementById('ipa').innerText = `音标: ${words[index].ipa}`;
+    document.getElementById('meaning').innerText = `中文: ${words[index].meaning}`;
+    document.getElementById('result').textContent = '';
+    enableButtons(); // 下一题时按钮恢复可点击
+    updateScore();
+}
+
+function checkAnswer(answer){
+    let correct = words[currentIndex].gender;
+    completed++; // 已做题 +1
+    if(correct === 'mf'){
+        document.getElementById('result').textContent = 'ℹ️ 这个词可为阳性或阴性';
+    } else if(answer === correct){
+        score++;
+        document.getElementById('result').textContent = '✅ 正确！';
+    } else {
+        document.getElementById('result').textContent = `❌ 错误！正确答案是 ${correct==='m'?'阳性':'阴性'}`;
+    }
+    updateScore();
+    disableButtons(); // 答题后按钮禁用
 }
 
 function nextWord(){
-  clearInterval(timer);
-  if (availableWords.length === 0) { endGame(); return; }
-  round++;
-  // 随机取一个并删除，确保不重复
-  let index = Math.floor(Math.random() * availableWords.length);
-  currentWord = availableWords.splice(index, 1)[0];
-
-  document.getElementById('word').innerText = currentWord.text;
-  document.getElementById('feedback').innerText = "";
-  phase = 1; chosenGender = null;
-  document.getElementById('genderBtns').style.display = 'block';
-  document.getElementById('articleBtns').style.display = 'none';
-  document.getElementById('continueBtn').style.display = 'none';
-  startTimer();
-}
-
-function startTimer(){
-  clearInterval(timer);
-  let elapsed = 0;
-  let timeLeftElem = document.getElementById('timeLeft');
-  timeLeftElem.style.color = "#333";
-  document.getElementById('timerFill').style.width = "100%";
-  timer = setInterval(()=>{
-    elapsed += 100;
-    let remaining = timeLimit - elapsed;
-    let secondsLeft = Math.ceil(remaining / 1000);
-    timeLeftElem.textContent = secondsLeft + " 秒";
-    let percentage = (remaining / timeLimit) * 100;
-    document.getElementById('timerFill').style.width = percentage + "%";
-    if (secondsLeft <= 2 && secondsLeft > 0) timeLeftElem.style.color = "orange";
-    if (secondsLeft <= 1) timeLeftElem.style.color = "red";
-    if (remaining <= 0){
-      clearInterval(timer);
-      handleWrong(`⏰ 时间到！正确是 ${phase===1?currentWord.gender:expectedArticle(currentWord)}`);
+    currentIndex++;
+    if(currentIndex >= words.length){
+        alert(`结束！你的总分：${score}/${completed}`);
+        currentIndex = 0;
+        score = 0;
+        completed = 0;
+        shuffle(words);
     }
-  }, 100);
+    showWord(currentIndex);
 }
 
-function chooseGender(choice){
-  clearInterval(timer);
-  chosenGender = choice;
-  if (choice === currentWord.gender){
-    document.getElementById('feedback').innerHTML = "<span class='correct'>✔ 性别正确！</span>";
-    phase = 2;
-    document.getElementById('genderBtns').style.display = 'none';
-    document.getElementById('articleBtns').style.display = 'block';
-    startTimer();
-  } else {
-    handleWrong(`❌ 性别错误！正确是 ${currentWord.gender}`);
-  }
+function updateScore(){
+    document.getElementById('score').innerText = `分数：${score}/${completed}`;
 }
 
-function expectedArticle(wordObj){
-  const first = wordObj.text[0].toLowerCase();
-  const vowels = ['a','e','i','o','u','h','â','ê','î','ô','û','é','è','ë','ï','ü'];
-  if (vowels.includes(first)) return "l’";
-  return wordObj.gender === "M" ? "le" : "la";
+// 禁用按钮
+function disableButtons(){
+    document.getElementById('btnMas').disabled = true;
+    document.getElementById('btnFem').disabled = true;
+}
+// 使按钮可用
+function enableButtons(){
+    document.getElementById('btnMas').disabled = false;
+    document.getElementById('btnFem').disabled = false;
 }
 
-function chooseArticle(choice){
-  clearInterval(timer);
-  const correctArt = expectedArticle(currentWord);
-  if (choice === correctArt){
-    document.getElementById('feedback').innerHTML = "<span class='correct'>✔ 冠词正确！</span>";
-    score++;
-    setTimeout(nextWord, 800);
-  } else {
-    handleWrong(`❌ 冠词错误！正确是 ${correctArt}`);
-  }
-  document.getElementById('score').innerText = "得分: " + score;
-}
-
-function handleWrong(msg){
-  document.getElementById('feedback').innerHTML = `<span class='wrong'>${msg}</span>`;
-  wrongList.push(currentWord);
-  document.getElementById('continueBtn').style.display = 'inline-block';
-}
-
-function continueGame(){
-  nextWord();
-}
-
-function endGame(){
-  let timeUsed = ((Date.now() - startTime) / 1000).toFixed(1);
-  document.getElementById('word').innerText = "游戏结束!";
-  document.getElementById('feedback').innerText = "";
-  let wrongText = wrongList.length>0
-    ? "<b>需要复习：</b><br>" + wrongList.map(w =>
-        `${w.text} (${w.gender}, ${expectedArticle(w)})`).join("<br>")
-    : "🎉 全部答对！";
-  document.getElementById('summary').innerHTML = `
-    <p>总分: ${score} / ${totalRounds}</p>
-    <p>总用时: ${timeUsed} 秒</p>
-    <p>${wrongText}</p>
-    <button class='btnStart' onclick="startGame()">再玩一次</button>
-  `;
-}
+// 初始化
+showWord(currentIndex);
 </script>
-
 </body>
 </html>
